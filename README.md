@@ -1,0 +1,65 @@
+# pi-gotify-notifier
+
+Send [Gotify](https://gotify.net/) push notifications for [pi](https://github.com/badlogic/pi-mono) agent session events.
+
+## Features
+
+- **Task Complete** — notified when the agent finishes processing and is waiting for your input
+- **Session Ended** — notified when the pi session shuts down
+
+## Installation
+
+### Via npm
+
+```bash
+pi install npm:pi-gotify-notifier
+```
+
+### Via git
+
+```bash
+pi install git:github.com/mario-gc/pi-gotify-notifier@main
+```
+
+### Local development
+
+```bash
+pi -e ./path/to/pi-gotify-notifier/src/index.ts
+```
+
+## Configuration
+
+Set the following environment variables before starting pi:
+
+| Variable | Required | Description |
+|---|---|---|
+| `GOTIFY_URL` | Yes | Your Gotify server URL (e.g., `https://gotify.example.com`) |
+| `GOTIFY_TOKEN` | Yes | Gotify application token |
+| `GOTIFY_TLS_REJECT_UNAUTHORIZED` | No | Set to `false` or `0` to disable TLS verification |
+| `GOTIFY_CA_PATH` | No | Path to a custom CA certificate file |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | No | Fallback for TLS verification (if `GOTIFY_TLS_REJECT_UNAUTHORIZED` is not set) |
+
+### Example
+
+```bash
+export GOTIFY_URL="https://gotify.example.com"
+export GOTIFY_TOKEN="your-app-token"
+pi
+```
+
+## How It Works
+
+The extension listens to pi's lifecycle events:
+
+| Event | Notification | Priority |
+|---|---|---|
+| `agent_end` | ✅ Task Complete | 5 |
+| `session_shutdown` | 🔴 Session Ended | 3 |
+
+Notifications are debounced — if multiple agent turns complete in quick succession, only one notification is sent after a short delay.
+
+If the required environment variables are not set, the extension loads silently and does nothing.
+
+## License
+
+MIT
