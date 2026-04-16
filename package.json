@@ -13,6 +13,7 @@
   "pi": {
     "extensions": ["./src/index.ts"]
   },
+  "files": ["src/index.ts", "README.md", "LICENSE"],
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
