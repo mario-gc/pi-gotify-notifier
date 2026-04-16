@@ -1,6 +1,6 @@
 {
   "name": "pi-gotify-notifier",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Send Gotify notifications for pi agent session events",
   "type": "module",
   "keywords": [
@@ -13,7 +13,7 @@
   "pi": {
     "extensions": ["./src/index.ts"]
   },
-  "files": ["src/index.ts", "README.md", "LICENSE"],
+  "files": ["src/index.ts", "CHANGELOG.md", "README.md", "LICENSE"],
   "scripts": {
     "typecheck": "tsc --noEmit"
   },

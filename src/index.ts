@@ -121,7 +121,8 @@ export default function (pi: ExtensionAPI) {
     });
   }
 
-  pi.on("agent_end", async () => {
+  pi.on("agent_end", async (_event, ctx) => {
+    const contextLines = getContextLines(pi, ctx);
     idleSequence++;
     const seq = idleSequence;
 
@@ -129,15 +130,38 @@ export default function (pi: ExtensionAPI) {
     pendingTimer = setTimeout(async () => {
       if (idleSequence !== seq) return;
       pendingTimer = undefined;
-      await sendToGotify(config, "\u2705 Task Complete", "Pi agent finished processing", 5);
+      await sendToGotify(
+        config,
+        "\u2705 Task Complete",
+        "Pi agent finished processing" + contextLines,
+        5,
+      );
     }, IDLE_NOTIFY_DELAY_MS);
   });
 
-  pi.on("session_shutdown", async () => {
+  pi.on("session_shutdown", async (_event, ctx) => {
+    const contextLines = getContextLines(pi, ctx);
     if (pendingTimer) {
       clearTimeout(pendingTimer);
       pendingTimer = undefined;
     }
-    await sendToGotify(config, "\u{1F534} Session Ended", "Pi session has ended", 3);
+    await sendToGotify(
+      config,
+      "\u{1F534} Session Ended",
+      "Pi session has ended" + contextLines,
+      3,
+    );
   });
+}
+
+function getContextLines(pi: ExtensionAPI, ctx: { cwd: string }): string {
+  const lines: string[] = [];
+  const sessionName = pi.getSessionName?.();
+  if (sessionName) {
+    lines.push("");
+    lines.push(`Session: ${sessionName}`);
+  }
+  lines.push("");
+  lines.push(`Project: ${ctx.cwd}`);
+  return lines.join("\n");
 }
