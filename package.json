@@ -13,7 +13,7 @@
   "pi": {
     "extensions": ["./src/index.ts"]
   },
-  "files": ["src/index.ts", "README.md", "LICENSE"],
+  "files": ["src/index.ts", "CHANGELOG.md", "README.md", "LICENSE"],
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
