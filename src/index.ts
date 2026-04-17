@@ -12,7 +12,7 @@
  *   NODE_TLS_REJECT_UNAUTHORIZED       - Fallback if GOTIFY_TLS_REJECT_UNAUTHORIZED is not set
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import * as https from "node:https";
 import type { Agent } from "node:https";
 import { readFile } from "node:fs/promises";
@@ -195,13 +195,12 @@ function getContextLines(pi: ExtensionAPI, ctx: { cwd: string }): string {
 function checkContextThresholds(
   config: GotifyConfig,
   pi: ExtensionAPI,
-  ctx: { cwd: string },
+  ctx: ExtensionContext,
 ): void {
   const usage = ctx.getContextUsage?.();
   if (!usage) return;
 
-  const model = (ctx as any).model;
-  const contextWindow = model?.contextWindow;
+  const contextWindow = ctx.model?.contextWindow;
   if (!contextWindow) return;
 
   const pct = Math.round((usage.tokens / contextWindow) * 100);
@@ -210,8 +209,10 @@ function checkContextThresholds(
     if (pct >= threshold && !notifiedThresholds.has(threshold)) {
       notifiedThresholds.add(threshold);
       const sessionName = pi.getSessionName?.();
+      const modelStr = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined;
       const lines: string[] = [];
       if (sessionName) lines.push(`Session: ${sessionName}`);
+      if (modelStr) lines.push(`Model: ${modelStr}`);
       lines.push(`Project: ${ctx.cwd}`);
       lines.push(`Tokens: ${usage.tokens.toLocaleString()} / ${contextWindow.toLocaleString()}`);
       lines.push(`Estimated remaining: ${(contextWindow - usage.tokens).toLocaleString()}`);
