@@ -146,7 +146,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.on("agent_end", async (_event, ctx) => {
-    checkContextThresholds(ctx);
+    checkContextThresholds(config!, pi, ctx);
 
     const contextLines = getContextLines(pi, ctx);
     idleSequence++;
@@ -192,7 +192,11 @@ function getContextLines(pi: ExtensionAPI, ctx: { cwd: string }): string {
   return lines.join("\n");
 }
 
-function checkContextThresholds(ctx: { cwd: string }): void {
+function checkContextThresholds(
+  config: GotifyConfig,
+  pi: ExtensionAPI,
+  ctx: { cwd: string },
+): void {
   const usage = ctx.getContextUsage?.();
   if (!usage) return;
 
@@ -213,7 +217,7 @@ function checkContextThresholds(ctx: { cwd: string }): void {
       lines.push(`Estimated remaining: ${(contextWindow - usage.tokens).toLocaleString()}`);
 
       sendToGotify(
-        config!,
+        config,
         `\u{1F6A8} Context Warning: ${pct}%`,
         `Session is at ${pct}% of context window (${threshold}% threshold)\n` +
           lines.join("\n"),
