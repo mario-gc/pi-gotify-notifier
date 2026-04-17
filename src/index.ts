@@ -8,15 +8,17 @@
  *   GOTIFY_TOKEN                       - Gotify app token
  *   GOTIFY_TLS_REJECT_UNAUTHORIZED     - Set to "false" or "0" to disable TLS verification
  *   GOTIFY_CA_PATH                     - Path to custom CA certificate file
+ *   GOTIFY_CONTEXT_THRESHOLDS          - Comma-separated context usage percentages to warn at (default: 50,75,90,95)
  *   NODE_TLS_REJECT_UNAUTHORIZED       - Fallback if GOTIFY_TLS_REJECT_UNAUTHORIZED is not set
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import * as https from "node:https";
 import type { Agent } from "node:https";
 import { readFile } from "node:fs/promises";
 
 const IDLE_NOTIFY_DELAY_MS = 1000;
+const DEFAULT_CONTEXT_THRESHOLDS = [50, 75, 90, 95];
 
 interface GotifyConfig {
   url: string;
@@ -26,6 +28,8 @@ interface GotifyConfig {
 
 let pendingTimer: ReturnType<typeof setTimeout> | undefined;
 let idleSequence = 0;
+let notifiedThresholds = new Set<number>();
+let contextThresholds: number[];
 
 function getConfig(): GotifyConfig | null {
   const url = process.env.GOTIFY_URL?.trim();
@@ -110,12 +114,23 @@ async function sendToGotify(
 export default function (pi: ExtensionAPI) {
   const config = getConfig();
 
+  // Parse context thresholds from env or use defaults
+  const thresholdsEnv = process.env.GOTIFY_CONTEXT_THRESHOLDS?.trim();
+  contextThresholds = thresholdsEnv
+    ? thresholdsEnv.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n) && n > 0 && n <= 100)
+    : DEFAULT_CONTEXT_THRESHOLDS;
+
   pi.on("session_start", async (_event, ctx) => {
     if (!config) {
       ctx.ui.notify("Gotify notifier: GOTIFY_URL or GOTIFY_TOKEN not set", "error");
       return;
     }
+    notifiedThresholds.clear();
     ctx.ui.notify("Gotify notifier ready", "info");
+  });
+
+  pi.on("session_compact", async () => {
+    notifiedThresholds.clear();
   });
 
   if (!config) return;
@@ -131,6 +146,8 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.on("agent_end", async (_event, ctx) => {
+    checkContextThresholds(config!, pi, ctx);
+
     const contextLines = getContextLines(pi, ctx);
     idleSequence++;
     const seq = idleSequence;
@@ -173,4 +190,40 @@ function getContextLines(pi: ExtensionAPI, ctx: { cwd: string }): string {
   lines.push("");
   lines.push(`Project: ${ctx.cwd}`);
   return lines.join("\n");
+}
+
+function checkContextThresholds(
+  config: GotifyConfig,
+  pi: ExtensionAPI,
+  ctx: ExtensionContext,
+): void {
+  const usage = ctx.getContextUsage?.();
+  if (!usage) return;
+
+  const contextWindow = ctx.model?.contextWindow;
+  if (!contextWindow) return;
+
+  const pct = Math.round((usage.tokens / contextWindow) * 100);
+
+  for (const threshold of contextThresholds) {
+    if (pct >= threshold && !notifiedThresholds.has(threshold)) {
+      notifiedThresholds.add(threshold);
+      const sessionName = pi.getSessionName?.();
+      const modelStr = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined;
+      const lines: string[] = [];
+      if (sessionName) lines.push(`Session: ${sessionName}`);
+      if (modelStr) lines.push(`Model: ${modelStr}`);
+      lines.push(`Project: ${ctx.cwd}`);
+      lines.push(`Tokens: ${usage.tokens.toLocaleString()} / ${contextWindow.toLocaleString()}`);
+      lines.push(`Estimated remaining: ${(contextWindow - usage.tokens).toLocaleString()}`);
+
+      sendToGotify(
+        config,
+        `\u{1F6A8} Context Warning: ${pct}%`,
+        `Session is at ${pct}% of context window (${threshold}% threshold)\n` +
+          lines.join("\n"),
+        8,
+      );
+    }
+  }
 }
