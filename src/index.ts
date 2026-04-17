@@ -109,6 +109,15 @@ async function sendToGotify(
 
 export default function (pi: ExtensionAPI) {
   const config = getConfig();
+
+  pi.on("session_start", async (_event, ctx) => {
+    if (!config) {
+      ctx.ui.notify("Gotify notifier: GOTIFY_URL or GOTIFY_TOKEN not set", "error");
+      return;
+    }
+    ctx.ui.notify("Gotify notifier ready", "info");
+  });
+
   if (!config) return;
 
   // Load custom CA if specified
