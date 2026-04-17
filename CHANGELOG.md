@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Context usage warning notifications at configurable thresholds (default: 50%, 75%, 90%, 95%)
 - `GOTIFY_CONTEXT_THRESHOLDS` environment variable to customize warning thresholds
 - Thresholds reset on new session and after compaction
+- Model info (provider/id) included in context warning notifications
 ## [0.2.1] - 2026-04-17
 
 ### Added
