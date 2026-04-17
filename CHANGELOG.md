@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-17
+
+### Added
+
+- `/gotify` command to toggle notifications on and off (`/gotify on`, `/gotify off`, `/gotify status`)
+- Notification state persists across turns and survives `/reload` via session entries
+- Codebase refactored into modular structure (`config.ts`, `gotify.ts`, `handlers.ts`)
+
 ## [0.3.0] - 2026-04-17
 
 ### Added
@@ -38,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Silent no-op when environment variables are not set
 - Debounced notifications to avoid spam during rapid turns
 
-[Unreleased]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.1.0...v0.2.0

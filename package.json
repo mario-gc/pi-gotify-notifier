@@ -1,6 +1,6 @@
 {
   "name": "pi-gotify-notifier",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Send Gotify notifications for pi agent session events",
   "type": "module",
   "keywords": [
@@ -11,9 +11,16 @@
     "notification"
   ],
   "pi": {
-    "extensions": ["./src/index.ts"]
+    "extensions": [
+      "./src/index.ts"
+    ]
   },
-  "files": ["src/index.ts", "CHANGELOG.md", "README.md", "LICENSE"],
+  "files": [
+    "src/",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
@@ -31,5 +38,8 @@
     "url": "https://github.com/mario-gc/pi-gotify-notifier/issues"
   },
   "homepage": "https://github.com/mario-gc/pi-gotify-notifier#readme",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
 }
