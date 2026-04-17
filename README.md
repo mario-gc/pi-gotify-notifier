@@ -6,6 +6,7 @@ Send [Gotify](https://gotify.net/) push notifications for [pi](https://github.co
 
 - **Task Complete** — notified when the agent finishes processing and is waiting for your input
 - **Session Ended** — notified when the pi session shuts down
+- **Context Warning** — notified when context usage reaches configurable thresholds (50%, 75%, 90%, 95%)
 
 ## Installation
 
@@ -37,6 +38,7 @@ Set the following environment variables before starting pi:
 | `GOTIFY_TOKEN` | Yes | Gotify application token |
 | `GOTIFY_TLS_REJECT_UNAUTHORIZED` | No | Set to `false` or `0` to disable TLS verification |
 | `GOTIFY_CA_PATH` | No | Path to a custom CA certificate file |
+| `GOTIFY_CONTEXT_THRESHOLDS` | No | Comma-separated context usage percentages to warn at (default: `50,75,90,95`) |
 | `NODE_TLS_REJECT_UNAUTHORIZED` | No | Fallback for TLS verification (if `GOTIFY_TLS_REJECT_UNAUTHORIZED` is not set) |
 
 ### Example
@@ -54,7 +56,10 @@ The extension listens to pi's lifecycle events:
 | Event | Notification | Priority |
 |---|---|---|
 | `agent_end` | ✅ Task Complete | 5 |
+| `agent_end` | 🚨 Context Warning (at threshold) | 8 |
 | `session_shutdown` | 🔴 Session Ended | 3 |
+
+Thresholds reset after each new session and after compaction.
 
 Notifications are debounced — if multiple agent turns complete in quick succession, only one notification is sent after a short delay.
 
