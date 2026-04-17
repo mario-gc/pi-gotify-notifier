@@ -7,6 +7,7 @@ Send [Gotify](https://gotify.net/) push notifications for [pi](https://github.co
 - **Task Complete** — notified when the agent finishes processing and is waiting for your input
 - **Session Ended** — notified when the pi session shuts down
 - **Context Warning** — notified when context usage reaches configurable thresholds (50%, 75%, 90%, 95%)
+- **Toggle on/off** — enable or disable notifications at any time with `/gotify on` or `/gotify off`
 
 ## Installation
 
@@ -64,6 +65,17 @@ Thresholds reset after each new session and after compaction.
 Notifications are debounced — if multiple agent turns complete in quick succession, only one notification is sent after a short delay.
 
 If the required environment variables are not set, the extension loads silently and does nothing.
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `/gotify` | Show current notification status |
+| `/gotify on` | Enable notifications |
+| `/gotify off` | Disable notifications (cancels any pending notification) |
+| `/gotify status` | Same as `/gotify` — show current status |
+
+Notification state persists across agent turns and survives `/reload` within the same session.
 
 ## License
 
