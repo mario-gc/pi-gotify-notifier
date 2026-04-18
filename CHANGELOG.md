@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Interactive `/gotify` command using a `SettingsList` TUI panel
+- Per-notification toggles (Task Complete, Context Warning, Session Ended)
+- Test notification trigger within the settings panel (press `t`)
+- Global notification on/off toggle
+
+### Changed
+
+- Replaced text-based subcommands (`/gotify on`, `/gotify off`, `/gotify status`) with interactive settings UI
+
 ## [0.4.0] - 2026-04-17
 
 ### Added

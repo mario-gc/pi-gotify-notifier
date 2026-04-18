@@ -3,13 +3,29 @@
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import type { GotifyConfig } from "./config.js";
+import type { GotifyConfig, NotificationTypeId } from "./config.js";
 import { sendToGotify } from "./gotify.js";
 
 const IDLE_NOTIFY_DELAY_MS = 1000;
 
-/** Whether notifications are currently enabled (toggled via /gotify command). */
-let enabled = true;
+/** Per-notification toggle state. */
+interface NotificationState {
+  globalEnabled: boolean;
+  notifications: Record<NotificationTypeId, boolean>;
+}
+
+/** Default notification state. */
+const DEFAULT_STATE: NotificationState = {
+  globalEnabled: true,
+  notifications: {
+    agentEnd: true,
+    contextWarning: true,
+    sessionEnd: true,
+  },
+};
+
+/** Current notification state. */
+let state: NotificationState = { ...DEFAULT_STATE, notifications: { ...DEFAULT_STATE.notifications } };
 
 /** Thresholds that have already triggered a notification in the current session. */
 let notifiedThresholds = new Set<number>();
@@ -20,12 +36,16 @@ let pendingTimer: ReturnType<typeof setTimeout> | undefined;
 /** Sequence counter to cancel stale debounce timers. */
 let idleSequence = 0;
 
-export function isEnabled(): boolean {
-  return enabled;
+export function getState(): NotificationState {
+  return state;
 }
 
-export function setEnabled(value: boolean): void {
-  enabled = value;
+export function setGlobalEnabled(value: boolean): void {
+  state.globalEnabled = value;
+}
+
+export function setNotificationEnabled(id: NotificationTypeId, value: boolean): void {
+  state.notifications[id] = value;
 }
 
 export function resetThresholds(): void {
@@ -44,22 +64,25 @@ export function cancelPendingNotification(): void {
 }
 
 /**
- * Reconstruct enabled state from session entries (survives /reload).
+ * Reconstruct state from session entries (survives /reload).
  */
 export function reconstructState(entries: Array<{
   type: string;
   customType?: string;
-  data?: { enabled?: boolean; notifiedThresholds?: number[] };
+  data?: Partial<NotificationState>;
 }>): void {
-  enabled = true;
-  notifiedThresholds = new Set<number>();
+  state = { ...DEFAULT_STATE, notifications: { ...DEFAULT_STATE.notifications } };
   for (const entry of entries) {
     if (entry.type === "custom" && entry.customType === "gotify-state") {
-      if (entry.data?.enabled !== undefined) {
-        enabled = entry.data.enabled;
+      const data = entry.data;
+      if (!data) continue;
+      if (data.globalEnabled !== undefined) {
+        state.globalEnabled = data.globalEnabled;
       }
-      if (entry.data?.notifiedThresholds) {
-        notifiedThresholds = new Set(entry.data.notifiedThresholds);
+      if (data.notifications) {
+        for (const key of Object.keys(data.notifications) as NotificationTypeId[]) {
+          state.notifications[key] = data.notifications[key]!;
+        }
       }
     }
   }
@@ -69,10 +92,7 @@ export function reconstructState(entries: Array<{
  * Persist current state to the session (survives /reload).
  */
 export function persistState(pi: ExtensionAPI): void {
-  pi.appendEntry("gotify-state", {
-    enabled,
-    notifiedThresholds: [...notifiedThresholds],
-  });
+  pi.appendEntry("gotify-state", { ...state, notifiedThresholds: [...notifiedThresholds] });
 }
 
 function getContextLines(pi: ExtensionAPI, ctx: { cwd: string }): string {
@@ -94,21 +114,18 @@ export function registerHandlers(
 ): void {
   pi.on("session_start", async (_event, ctx) => {
     // Reconstruct state from session entries (survives /reload)
-    const entries = ctx.sessionManager.getEntries();
-    reconstructState(
-      entries.filter((e) => e.type === "custom" && e.customType === "gotify-state") as Array<{
-        type: string;
-        customType?: string;
-        data?: { enabled?: boolean; notifiedThresholds?: number[] };
-      }>,
-    );
+    const entries = ctx.sessionManager.getBranch();
+    const customEntries = entries.filter(
+      (e) => e.type === "custom" && e.customType === "gotify-state",
+    ) as Array<{ type: string; customType?: string; data?: Partial<NotificationState> }>;
+    reconstructState(customEntries);
 
     if (!config) {
       ctx.ui.notify("Gotify notifier: GOTIFY_URL or GOTIFY_TOKEN not set", "error");
       return;
     }
     notifiedThresholds.clear();
-    const status = enabled ? "enabled ✓" : "disabled ✗";
+    const status = state.globalEnabled ? "enabled ✓" : "disabled ✗";
     ctx.ui.notify(`Gotify notifier ready (${status})`, "info");
   });
 
@@ -117,7 +134,7 @@ export function registerHandlers(
   });
 
   pi.on("agent_end", async (_event, ctx) => {
-    if (!enabled) return;
+    if (!state.globalEnabled || !state.notifications.agentEnd) return;
 
     checkContextThresholds(config, pi, ctx, contextThresholds);
 
@@ -139,7 +156,7 @@ export function registerHandlers(
   });
 
   pi.on("session_shutdown", async (_event, ctx) => {
-    if (!enabled) return;
+    if (!state.globalEnabled || !state.notifications.sessionEnd) return;
 
     const contextLines = getContextLines(pi, ctx);
     cancelPendingNotification();
@@ -158,6 +175,8 @@ function checkContextThresholds(
   ctx: ExtensionContext,
   thresholds: number[],
 ): void {
+  if (!state.globalEnabled || !state.notifications.contextWarning) return;
+
   const usage = ctx.getContextUsage?.();
   if (!usage || !usage.tokens) return;
 
