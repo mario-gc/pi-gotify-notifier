@@ -11,12 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Interactive `/gotify` command using a `SettingsList` TUI panel
 - Per-notification toggles (Task Complete, Context Warning, Session Ended)
-- Test notification trigger within the settings panel (press `t`)
+- Test notification trigger within the settings panel
 - Global notification on/off toggle
+- Editable context thresholds: add/remove/reset thresholds directly from the settings menu
+- Threshold changes persist via `pi.appendEntry()` across turns and `/reload`
 
 ### Changed
 
 - Replaced text-based subcommands (`/gotify on`, `/gotify off`, `/gotify status`) with interactive settings UI
+- "Context Thresholds" changed from read-only display to interactive submenu
 
 ## [0.4.0] - 2026-04-17
 

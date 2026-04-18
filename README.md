@@ -8,7 +8,7 @@ Send [Gotify](https://gotify.net/) push notifications for [pi](https://github.co
 - **Session Ended** — notified when the pi session shuts down
 - **Context Warning** — notified when context usage reaches configurable thresholds (50%, 75%, 90%, 95%)
 - **Toggle on/off** — enable or disable all notifications or individual types with the interactive `/gotify` settings panel
-- **Test notification** — send a test Gotify message directly from the settings panel (press `t`)
+- **Editable thresholds** — add, remove, or reset context warning thresholds directly from the settings menu
 
 ## Installation
 
@@ -76,7 +76,8 @@ If the required environment variables are not set, the extension loads silently 
 Type `/gotify` to open a settings panel where you can:
 - Toggle all notifications on/off
 - Toggle individual notification types (Task Complete, Context Warning, Session Ended)
-- Send a test notification (press `t`)
+- Send a test notification
+- Add, remove, or reset context warning thresholds (e.g., 50%, 75%, 90%, 95%)
 
 Notification state persists across agent turns and survives `/reload` within the same session.
 

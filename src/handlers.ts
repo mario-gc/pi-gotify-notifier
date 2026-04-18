@@ -4,6 +4,7 @@
 
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import type { GotifyConfig, NotificationTypeId } from "./config.js";
+import { DEFAULT_CONTEXT_THRESHOLDS } from "./config.js";
 import { sendToGotify } from "./gotify.js";
 
 const IDLE_NOTIFY_DELAY_MS = 1000;
@@ -12,6 +13,7 @@ const IDLE_NOTIFY_DELAY_MS = 1000;
 interface NotificationState {
   globalEnabled: boolean;
   notifications: Record<NotificationTypeId, boolean>;
+  thresholds: number[];
 }
 
 /** Default notification state. */
@@ -22,6 +24,7 @@ const DEFAULT_STATE: NotificationState = {
     contextWarning: true,
     sessionEnd: true,
   },
+  thresholds: [...DEFAULT_CONTEXT_THRESHOLDS],
 };
 
 /** Current notification state. */
@@ -48,6 +51,14 @@ export function setNotificationEnabled(id: NotificationTypeId, value: boolean): 
   state.notifications[id] = value;
 }
 
+export function getThresholds(): number[] {
+  return [...state.thresholds];
+}
+
+export function setThresholds(thresholds: number[]): void {
+  state.thresholds = [...thresholds].sort((a, b) => a - b);
+}
+
 export function resetThresholds(): void {
   notifiedThresholds.clear();
 }
@@ -66,12 +77,19 @@ export function cancelPendingNotification(): void {
 /**
  * Reconstruct state from session entries (survives /reload).
  */
-export function reconstructState(entries: Array<{
-  type: string;
-  customType?: string;
-  data?: Partial<NotificationState>;
-}>): void {
-  state = { ...DEFAULT_STATE, notifications: { ...DEFAULT_STATE.notifications } };
+export function reconstructState(
+  entries: Array<{
+    type: string;
+    customType?: string;
+    data?: Partial<NotificationState>;
+  }>,
+  fallbackThresholds: number[],
+): void {
+  state = {
+    ...DEFAULT_STATE,
+    notifications: { ...DEFAULT_STATE.notifications },
+    thresholds: [...fallbackThresholds],
+  };
   for (const entry of entries) {
     if (entry.type === "custom" && entry.customType === "gotify-state") {
       const data = entry.data;
@@ -83,6 +101,9 @@ export function reconstructState(entries: Array<{
         for (const key of Object.keys(data.notifications) as NotificationTypeId[]) {
           state.notifications[key] = data.notifications[key]!;
         }
+      }
+      if (data.thresholds && data.thresholds.length > 0) {
+        state.thresholds = [...data.thresholds].sort((a, b) => a - b);
       }
     }
   }
@@ -110,7 +131,7 @@ function getContextLines(pi: ExtensionAPI, ctx: { cwd: string }): string {
 export function registerHandlers(
   pi: ExtensionAPI,
   config: GotifyConfig,
-  contextThresholds: number[],
+  envThresholds: number[],
 ): void {
   pi.on("session_start", async (_event, ctx) => {
     // Reconstruct state from session entries (survives /reload)
@@ -118,7 +139,7 @@ export function registerHandlers(
     const customEntries = entries.filter(
       (e) => e.type === "custom" && e.customType === "gotify-state",
     ) as Array<{ type: string; customType?: string; data?: Partial<NotificationState> }>;
-    reconstructState(customEntries);
+    reconstructState(customEntries, envThresholds);
 
     if (!config) {
       ctx.ui.notify("Gotify notifier: GOTIFY_URL or GOTIFY_TOKEN not set", "error");
@@ -136,7 +157,7 @@ export function registerHandlers(
   pi.on("agent_end", async (_event, ctx) => {
     if (!state.globalEnabled || !state.notifications.agentEnd) return;
 
-    checkContextThresholds(config, pi, ctx, contextThresholds);
+    checkContextThresholds(config, pi, ctx, state.thresholds);
 
     const contextLines = getContextLines(pi, ctx);
     idleSequence++;
