@@ -38,6 +38,7 @@ Set the following environment variables before starting pi:
 |---|---|---|
 | `GOTIFY_URL` | Yes | Your Gotify server URL (e.g., `https://gotify.example.com`) |
 | `GOTIFY_TOKEN` | Yes | Gotify application token |
+| `GOTIFY_ENABLED` | No | Set to `false` or `0` to disable the entire extension at startup (no config loaded, no notifications sent) |
 | `GOTIFY_TLS_REJECT_UNAUTHORIZED` | No | Set to `false` or `0` to disable TLS verification |
 | `GOTIFY_CA_PATH` | No | Path to a custom CA certificate file |
 | `GOTIFY_CONTEXT_THRESHOLDS` | No | Comma-separated context usage percentages to warn at (default: `50,75,90,95`) |
