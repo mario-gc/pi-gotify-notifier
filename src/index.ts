@@ -2,6 +2,19 @@
  * Pi Gotify Notifier Extension
  *
  * Sends Gotify push notifications when pi agent events occur.
+ *
+ * Environment variables:
+ *   GOTIFY_URL                         - Gotify server URL (e.g., https://gotify.example.com)
+ *   GOTIFY_TOKEN                       - Gotify app token
+ *   GOTIFY_ENABLED                     - Set to "false" or "0" to disable the entire extension
+ *   GOTIFY_STARTUP_DISABLED            - Set to "true" or "1" to load extension but start with notifications off
+ *   GOTIFY_TLS_REJECT_UNAUTHORIZED     - Set to "false" or "0" to disable TLS verification
+ *   GOTIFY_CA_PATH                     - Path to custom CA certificate file
+ *   GOTIFY_CONTEXT_THRESHOLDS          - Comma-separated context usage percentages to warn at (default: 50,75,90,95)
+ *   NODE_TLS_REJECT_UNAUTHORIZED       - Fallback if GOTIFY_TLS_REJECT_UNAUTHORIZED is not set
+ *
+ * Commands:
+ *   /gotify  — Open interactive notification settings
  */
 
 import type { ExtensionAPI, Theme } from "@mariozechner/pi-coding-agent";

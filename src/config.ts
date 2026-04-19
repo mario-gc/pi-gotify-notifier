@@ -24,6 +24,10 @@ export interface GotifyConfig {
 }
 
 export function loadConfig(): GotifyConfig | null {
+  // Check explicit enable/disable flag
+  const enabled = process.env.GOTIFY_ENABLED?.trim().toLowerCase();
+  if (enabled === "false" || enabled === "0") return null;
+
   const url = process.env.GOTIFY_URL?.trim();
   const token = process.env.GOTIFY_TOKEN?.trim();
 
