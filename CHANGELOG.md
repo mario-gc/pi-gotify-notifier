@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-19
+
+### Added
+
+- Interactive `/gotify` command using a `SettingsList` TUI panel with submenus
+- Per-notification toggles (Task Complete, Context Warning, Session Ended)
+- Test notification trigger within the settings panel
+- Global notification on/off toggle
+- Editable context thresholds: add, remove, and reset thresholds directly from the settings menu
+- Threshold changes persist via `pi.appendEntry()` across turns and `/reload`
+- Descriptions on each menu item matching pi's `/settings` pattern
+
+### Changed
+
+- Replaced text-based subcommands (`/gotify on`, `/gotify off`, `/gotify status`) with interactive settings UI
+- "Context Thresholds" changed from read-only display to interactive submenu
+
 ## [0.4.0] - 2026-04-17
 
 ### Added
@@ -46,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Silent no-op when environment variables are not set
 - Debounced notifications to avoid spam during rapid turns
 
-[Unreleased]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/mario-gc/pi-gotify-notifier/compare/v0.2.0...v0.2.1

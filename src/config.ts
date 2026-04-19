@@ -8,6 +8,15 @@ import { readFile } from "node:fs/promises";
 
 export const DEFAULT_CONTEXT_THRESHOLDS = [50, 75, 90, 95];
 
+/** Available notification types. */
+export const NOTIFICATION_TYPES = [
+  { id: "agentEnd", label: "Task Complete", defaultEnabled: true },
+  { id: "contextWarning", label: "Context Warning", defaultEnabled: true },
+  { id: "sessionEnd", label: "Session Ended", defaultEnabled: true },
+] as const;
+
+export type NotificationTypeId = (typeof NOTIFICATION_TYPES)[number]["id"];
+
 export interface GotifyConfig {
   url: string;
   token: string;
