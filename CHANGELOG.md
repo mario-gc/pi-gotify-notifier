@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `GOTIFY_ENABLED` environment variable to disable the entire extension at startup (set to `false` or `0` — no config loaded, no handlers registered)
+
 ## [0.5.0] - 2026-04-19
 
 ### Added
