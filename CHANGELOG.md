@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `GOTIFY_ENABLED` environment variable to disable the entire extension at startup (set to `false` or `0` — no config loaded, no handlers registered)
+- `GOTIFY_STARTUP_DISABLED` environment variable to load the extension but start with notifications disabled (set to `true` or `1` — can be enabled via `/gotify`)
 
 ## [0.5.0] - 2026-04-19
 

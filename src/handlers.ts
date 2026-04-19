@@ -107,6 +107,12 @@ export function reconstructState(
       }
     }
   }
+
+  // Env var override: start with notifications disabled regardless of saved state
+  const startupDisabled = process.env.GOTIFY_STARTUP_DISABLED?.trim().toLowerCase();
+  if (startupDisabled === "true" || startupDisabled === "1") {
+    state.globalEnabled = false;
+  }
 }
 
 /**
